@@ -11,7 +11,7 @@ const data = JSON.parse(decodeURI(searchParse().data));
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 const render = document.querySelector('#render');
-
+console.log(data);
 // 获取背景颜色
 const color = handleFormatColor(data.bg_color, 'bg');
 const rgb = colr.fromHex(color.bgColor).toRgbArray();
@@ -62,8 +62,6 @@ data.raw.blocks.forEach((v, i) => {
   const inlineCtx = inlineCanvas.getContext('2d');
   inlineCanvas.width = data.w;
   inlineCanvas.height = lineHeight[i];
-  inlineCtx.fillStyle = 'rgba(0,0,0,0.5)';
-  inlineCtx.fillRect(0,0,inlineCanvas.width, inlineCanvas.height);
   let blockW = 0;
   let nextBlockX = 0;
   inlineCtx.textBaseline = 'middle';
@@ -96,7 +94,6 @@ data.raw.blocks.forEach((v, i) => {
     }
     inlineCtx.textAlign = v.type;
   }
-
   lineStyles.forEach((j) => {
     let font = '';
     j.style.forEach((s) => {
@@ -109,41 +106,21 @@ data.raw.blocks.forEach((v, i) => {
       }
     });
     inlineCtx.font = font;
-    console.log(inlineCtx);
     inlineCtx.fillText(j.text, textBaseLine, inlineCanvas.height / 2);
     /**
      * 每渲染完成一个文字 更新基线的位置为 当前位置+下一个文字宽度
      */
     textBaseLine = textBaseLine + j.offset;
   });
-  // v.inlineStyleRanges.forEach((t, j) => {
-  //   const style = map[t.style];
-  //   let font = ['normal', 'normal'];
-  //   const text = v.text.substring(t.offset, t.offset + t.length);
-  //   console.log(t);
-  //   if (style !== undefined) {
-  //     const key = Object.keys(style)[0];
-  //     if (key === 'fontSize') {
-  //       blockW = text.length * parseInt(style[key]);
-  //       nextBlockX = blockW + nextBlockX;
-  //     }
-  //     if (key.indexOf('font') > -1) {
-  //       font.push(style[key]);
-  //       inlineCtx.font = `${font.join(' ')} 'PingFang SC','Microsoft YaHei'`;
-  //     }
-  //     if (key === 'color') {
-  //       inlineCtx.fillStyle = style.color;
-  //     }
-  //   }
-  //   inlineCtx.fillText(text, textBaseLine, inlineCanvas.height / 2);
-  // });
   ctx.drawImage(inlineCanvas, 0, startY);
   startY = startY + lineHeight[i];
 });
 
 /**
  * 
- * @param {*源数据} line 
+ * @param {*源数据} line
+ * 将每一行的源数据按一个字一个对象的方式拆分开
+ * 每个对象存放一个文字 一个样式数据和相对于前一个字的X坐标
  */
 function getBlockStyles(line, text) {
   const lineStyles = [];
