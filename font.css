@@ -1,0 +1,82 @@
+
+@font-face {
+  font-family: xiaoWanZi;
+  src: url('./font/xiaoWanZi.ttf');
+}
+
+@font-face {
+  font-family: SourceHanSansCN-Medium;
+  src: url('./font/SourceHanSansCN-Medium.otf');
+}
+
+@font-face {
+  font-family: SourceHanSansCN-Regular;
+  src: url('./font/SourceHanSansCN-Regular.otf');
+}
+
+@font-face {
+  font-family: huawenhupo;
+  src: url('./font/huawenhupo.ttf');
+}
+
+@font-face {
+  font-family: laihuziti;
+  src: url('./font/laihuziti.ttf');
+}
+
+@font-face {
+  font-family: pangmenzhengdao;
+  src: url('./font/pangmenzhengdao.ttf');
+}
+
+@font-face {
+  font-family: pili;
+  src: url('./font/pili.ttf');
+}
+@font-face {
+  font-family: suibo;
+  src: url('./font/suibo.ttf');
+}
+
+@font-face {
+  font-family: wukelili;
+  src: url('./font/wukelili.ttf');
+}
+@font-face {
+  font-family: yuanchuangshouxie;
+  src: url('./font/yuanchuangshouxie.ttf');
+}
+
+@font-face {
+  font-family: gaoduanhei;
+  src: url('./font/gaoduanhei.ttf');
+}
+
+@font-face {
+  font-family: kuhei;
+  src: url('./font/kuhei.ttf');
+}
+@font-face {
+  font-family: kuaileti;
+  src: url('./font/kuaileti.ttf');
+}
+
+@font-face {
+  font-family: zhiya;
+  src: url('./font/zhiya.ttf');
+}
+@font-face {
+  font-family: degula;
+  src: url('./font/degula.ttf');
+}
+@font-face {
+  font-family: GenEiGothicN-U-KL;
+  src: url('./font/GenEiGothicN-U-KL.otf');
+}
+@font-face {
+  font-family: PostNoBillsJaffna-ExtraBold;
+  src: url('./font/PostNoBillsJaffna-ExtraBold.otf');
+}
+
+
+

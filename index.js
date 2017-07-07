@@ -19,6 +19,7 @@ canvas.height = data.h;
 // 绘制背景矩形
 ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${color.bgAlpha})`;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 /**
  * @param {*源数据} blocks 
  * 根据每一行的最大字体高度确定文字部分总高度
@@ -61,8 +62,6 @@ data.raw.blocks.forEach((v, i) => {
   let blockW = 0;
   let nextBlockX = 0;
   inlineCtx.textBaseline = 'middle';
-  // inlineCtx.textAlign = 'left';
-  // inlineCtx.fillStyle = "#000";
   let textBaseLine = 0;
   const { lineStyles, lineWidth } = getBlockStyles(v.inlineStyleRanges, v.text.split(''));
   if (v.type !== 'unstyled') {
@@ -94,42 +93,40 @@ data.raw.blocks.forEach((v, i) => {
   lineStyles.forEach((j, index) => {
     let font = '';
     let color = '#000';
-    for (css in j.style) {
-      if (css === 'color') {
-        color = j.style[css];
-      }
-      if (css === 'fontSize' || css === 'fontFamily') {
-        font = `${font}${j.style[css]} 'PingFang SC','Microsoft YaHei'`;
-      }
+    font = `normal normal ${j.style.fontSize && j.style.fontSize} ${j.style.fontFamily && j.style.fontFamily}, 'PingFang SC','Microsoft YaHei'`;
+    if (j.style.color !== undefined) {
+      color = j.style.color;
     }
     inlineCtx.fillStyle = color;
     inlineCtx.font = font;
+    console.log(inlineCtx.measureText(j.text).width);
+    const offset = inlineCtx.measureText(j.text).width;
     inlineCtx.fillText(j.text, textBaseLine, inlineCanvas.height / 2);
     /**
      * 每渲染完成一个文字 更新基线的位置为 当前位置+下一个文字宽度
      */
-    textBaseLine = textBaseLine + j.offset;
+    textBaseLine = textBaseLine + offset;
   });
   ctx.drawImage(inlineCanvas, 0, startY);
   startY = startY + lineHeight[i];
 });
 
 /**
- * 
  * @param {*源数据} line
  * 将每一行的源数据按一个字一个对象的方式拆分开
  * 每个对象存放一个文字 一个样式数据和相对于前一个字的X坐标
  */
 function getBlockStyles(line, text) {
-  const lineStyles = [];
   let lineWidth = 0;
-  text.reduce((pre, cur, i) => {
+  const lineStyles = text.reduce((pre, cur, i) => {
     let curStyle = {
       text: cur,
       style: {},
       offset: 0,
     };
-    line.forEach((v, j) => {
+    const fontSpan = document.createElement('span');
+    const textNode = document.createTextNode(cur);
+    line.forEach((v) => {
       const t = text.slice(v.offset, v.offset + v.length);
       if (t.indexOf(cur) > -1) {
         if (v.style.startsWith('COLOR_')) {
@@ -138,28 +135,28 @@ function getBlockStyles(line, text) {
         } else {
           const styleObj = map[v.style];
           const keys = Object.keys(styleObj)[0];
-          // curStyle.style.push(styleObj);
           curStyle.style = Object.assign(curStyle.style, { [keys]: styleObj[keys] });
-          if (keys === 'fontSize') {
-            const reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
-            if(reg.test(cur)) {
-              lineWidth = lineWidth + parseInt(styleObj[keys]);
-              curStyle.offset = parseInt(styleObj[keys]);
-            } else {
-              lineWidth = lineWidth + parseInt(styleObj[keys]) / 2;
-              curStyle.offset = parseInt(styleObj[keys]) / 2;
-            }
-          }
         }
       }
     });
-    lineStyles.push(curStyle);
+    pre.push(curStyle);
+    return pre;
   }, []);
   return {
     lineStyles,
     lineWidth,
   }
 };
-
 document.body.appendChild(canvas);
 const base64 = canvas.toDataURL('image/png');
+
+function getStyle(el) {
+    let style = null;
+    if (window.getComputedStyle) {
+      style = window.getComputedStyle(el, null);
+    } else {
+      style = el.currentStyle;
+    }
+    return style;
+  };
+  
