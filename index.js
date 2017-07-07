@@ -21,7 +21,6 @@ canvas.height = data.h;
 ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${color.bgAlpha})`;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 /**
- * 
  * @param {*源数据} blocks 
  * 根据每一行的最大字体高度确定文字部分总高度
  * 通过总高度计算出第一行起始坐标
@@ -63,23 +62,37 @@ data.raw.blocks.forEach((v, i) => {
   const inlineCtx = inlineCanvas.getContext('2d');
   inlineCanvas.width = data.w;
   inlineCanvas.height = lineHeight[i];
+  inlineCtx.fillStyle = 'rgba(0,0,0,0.5)';
+  inlineCtx.fillRect(0,0,inlineCanvas.width, inlineCanvas.height);
   let blockW = 0;
   let nextBlockX = 0;
   inlineCtx.textBaseline = 'middle';
   inlineCtx.textAlign = 'left';
   inlineCtx.fillStyle = "#000";
   let textBaseLine = 0;
-  const lineStyles = getBlockStyles(v.inlineStyleRanges, v.text.split(''));
-
+  const { lineStyles, lineWidth } = getBlockStyles(v.inlineStyleRanges, v.text.split(''));
   if (v.type !== 'unstyled') {
     if (v.type === 'left') {
       textBaseLine = 0;
     }
+    /**
+     * 居中
+     * canvas文字对齐方式依赖文字渲染时的X坐标
+     * 如果以单字的方式渲染，需要计算一行文字总宽度
+     * 套用 (画布宽度 / 2) - (文字总宽度 / 2) + (第一个文字宽度 / 2)）来确定渲染第一个文字时的起始坐标
+     * 后续文字根据前一个文字渲染时的基线X坐标 + 文字本身宽度 来确定渲染位置
+     */
     if (v.type === 'center') {
-      textBaseLine = data.w / 2;
+      textBaseLine = data.w / 2 - lineWidth / 2 + lineStyles[0].offset / 2;
     }
+    /**
+     * 右对齐
+     * 右对齐在canvas中实际文字位于基线左边
+     * 单字方式渲染时 根据文字宽度动态计算每一个文字渲染时基线的位置
+     * (画布宽度 / 2) - 文字总宽 + 第一个文字宽度 来确定渲染第一个文字的起始坐标
+     */
     if (v.type === 'right') {
-      textBaseLine = data.w;
+      textBaseLine = data.w - lineWidth + lineStyles[0].offset;
     }
     inlineCtx.textAlign = v.type;
   }
@@ -96,9 +109,11 @@ data.raw.blocks.forEach((v, i) => {
       }
     });
     inlineCtx.font = font;
-    // console.log(font);
     console.log(inlineCtx);
     inlineCtx.fillText(j.text, textBaseLine, inlineCanvas.height / 2);
+    /**
+     * 每渲染完成一个文字 更新基线的位置为 当前位置+下一个文字宽度
+     */
     textBaseLine = textBaseLine + j.offset;
   });
   // v.inlineStyleRanges.forEach((t, j) => {
@@ -130,9 +145,9 @@ data.raw.blocks.forEach((v, i) => {
  * 
  * @param {*源数据} line 
  */
-
 function getBlockStyles(line, text) {
-  const blockStyles = [];
+  const lineStyles = [];
+  let lineWidth = 0;
   text.reduce((pre, cur, i) => {
     let curStyle = {
       text: cur,
@@ -152,17 +167,22 @@ function getBlockStyles(line, text) {
           if (keys === 'fontSize') {
             const reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
             if(reg.test(cur)) {
+              lineWidth = lineWidth + parseInt(styleObj[keys]);
               curStyle.offset = parseInt(styleObj[keys]);
             } else {
+              lineWidth = lineWidth + parseInt(styleObj[keys]) / 2;
               curStyle.offset = parseInt(styleObj[keys]) / 2;
             }
           }
         }
       }
     });
-    blockStyles.push(curStyle);
+    lineStyles.push(curStyle);
   }, []);
-  return blockStyles;
+  return {
+    lineStyles,
+    lineWidth,
+  }
 };
 
 document.body.appendChild(canvas);
