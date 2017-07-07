@@ -11,7 +11,6 @@ const data = JSON.parse(decodeURI(searchParse().data));
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 const render = document.querySelector('#render');
-console.log(data);
 // 获取背景颜色
 const color = handleFormatColor(data.bg_color, 'bg');
 const rgb = colr.fromHex(color.bgColor).toRgbArray();
@@ -38,11 +37,8 @@ function getMaxHeight(blocks) {
           const height = parseInt(obj['fontSize']);
           if (height > max) {
             max = height;
-          }
-          if (k === (v.inlineStyleRanges.length - 1)) {
             maxHeight = maxHeight + max * 1.4;
             lineHeight.push(Math.round(max * 1.4));
-            max = 0;
           }
         }
       }
@@ -65,8 +61,8 @@ data.raw.blocks.forEach((v, i) => {
   let blockW = 0;
   let nextBlockX = 0;
   inlineCtx.textBaseline = 'middle';
-  inlineCtx.textAlign = 'left';
-  inlineCtx.fillStyle = "#000";
+  // inlineCtx.textAlign = 'left';
+  // inlineCtx.fillStyle = "#000";
   let textBaseLine = 0;
   const { lineStyles, lineWidth } = getBlockStyles(v.inlineStyleRanges, v.text.split(''));
   if (v.type !== 'unstyled') {
@@ -94,17 +90,19 @@ data.raw.blocks.forEach((v, i) => {
     }
     inlineCtx.textAlign = v.type;
   }
-  lineStyles.forEach((j) => {
+  console.log(lineStyles);
+  lineStyles.forEach((j, index) => {
     let font = '';
-    j.style.forEach((s) => {
-      const keys = Object.keys(s)[0];
-      if (keys === 'color') {
-        inlineCtx.fillStyle = s[keys];
+    let color = '#000';
+    for (css in j.style) {
+      if (css === 'color') {
+        color = j.style[css];
       }
-      if (keys === 'fontSize' || keys === 'fontFamily') {
-        font = `${font}${s[keys]} 'PingFang SC','Microsoft YaHei'`;
+      if (css === 'fontSize' || css === 'fontFamily') {
+        font = `${font}${j.style[css]} 'PingFang SC','Microsoft YaHei'`;
       }
-    });
+    }
+    inlineCtx.fillStyle = color;
     inlineCtx.font = font;
     inlineCtx.fillText(j.text, textBaseLine, inlineCanvas.height / 2);
     /**
@@ -128,7 +126,7 @@ function getBlockStyles(line, text) {
   text.reduce((pre, cur, i) => {
     let curStyle = {
       text: cur,
-      style: [],
+      style: {},
       offset: 0,
     };
     line.forEach((v, j) => {
@@ -136,11 +134,12 @@ function getBlockStyles(line, text) {
       if (t.indexOf(cur) > -1) {
         if (v.style.startsWith('COLOR_')) {
           const rgba = `rgba(${v.style.split('COLOR_')[1]})`;
-          curStyle.style.push({ color: rgba });
+          curStyle.style = Object.assign(curStyle.style, { color: rgba });
         } else {
           const styleObj = map[v.style];
           const keys = Object.keys(styleObj)[0];
-          curStyle.style.push(styleObj);
+          // curStyle.style.push(styleObj);
+          curStyle.style = Object.assign(curStyle.style, { [keys]: styleObj[keys] });
           if (keys === 'fontSize') {
             const reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
             if(reg.test(cur)) {
