@@ -50,4 +50,7 @@ const map = {
   grey: { color: '#CCD1D9' },
   darkgrey: { color: '#656D78' },
   charcoal: { color: '#3C3B3D' },
+  bold: { fontWeight: 'bold' },
+  italic: { fontStyle: 'italic' },
+  underline: { textDecoration: 'underline' },
 };
